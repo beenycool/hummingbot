@@ -13,10 +13,10 @@ from hummingbot.core.data_type.order_book import OrderBook
 from hummingbot.core.data_type.order_book_tracker import OrderBookTrackerDataSource
 from hummingbot.core.data_type.order_book_message import OrderBookMessage, OrderBookMessageType
 from hummingbot.core.data_type.order_book_row import OrderBookRow
-from hummingbot.core.web_assistant.connections.data_types import RESTResponse
 from hummingbot.connector.exchange.trading212.trading212_web_utils import Trading212WebUtils
-from hummingbot.connector.exchange.trading212.trading212_constants import POLLING_INTERVALS
-
+from hummingbot.connector.exchange.trading212.trading212_constants import POLLING_INTERVALS, REST_URL, ENDPOINTS
+from hummingbot.connector.exchange.trading212.trading212_utils import Trading212Utils
+import time
 
 class Trading212APIOrderBookDataSource(OrderBookTrackerDataSource):
     """
