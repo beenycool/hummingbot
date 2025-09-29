@@ -196,12 +196,11 @@ DEFAULT_HEADERS = {
 
 # Polling Intervals (in seconds)
 POLLING_INTERVALS = {
-    "ORDER_STATUS": 1,      # Check order status every 1 second
+    "ORDER_STATUS": 5,      # Align with list orders rate limit (1 req / 5s)
     "BALANCE_UPDATE": 5,    # Update balances every 5 seconds
-    "PORTFOLIO_UPDATE": 5,   # Update portfolio every 5 seconds
+    "PORTFOLIO_UPDATE": 5,  # Update portfolio every 5 seconds
     "MARKET_DATA": 10,      # Update market data every 10 seconds
 }
-
 # Timeout Settings (in seconds)
 TIMEOUTS = {
     "REQUEST_TIMEOUT": 30,   # HTTP request timeout
