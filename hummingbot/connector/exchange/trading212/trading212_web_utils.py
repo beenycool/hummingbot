@@ -273,10 +273,9 @@ class Trading212WebUtils:
             method="PUT",
             url=url,
             data=data,
-            json_data=json_data,
             headers=headers or {}
         )
-        return await self._make_request(request)
+        return await self._make_request(request, json_body=json_data)
         
     def get_rate_limiter(self) -> RateLimiter:
         """
