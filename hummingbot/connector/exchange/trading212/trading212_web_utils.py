@@ -133,47 +133,51 @@ class Trading212WebUtils:
             Various exceptions based on error conditions
         """
         status = response.status
-        
-        # Handle specific error cases
+        # Read response text once for diagnostics and pattern checks
+        try:
+            body_text = await response.text()
+        except Exception:
+            body_text = ""
+
         if status == 400:
-            if isinstance(response.data, str) and ERROR_MESSAGES["NOT_AVAILABLE_REAL_MONEY"] in response.data:
+            if ERROR_MESSAGES["NOT_AVAILABLE_REAL_MONEY"] in body_text:
                 from hummingbot.connector.exchange.trading212.trading212_exchange import MarketNotReady
                 raise MarketNotReady("Live trading not enabled for this account")
             else:
                 from hummingbot.connector.exchange.trading212.trading212_exchange import Trading212APIException
-                raise Trading212APIException(f"Bad request: {response.data}")
-                
+                raise Trading212APIException("Bad request")
+
         elif status == 401:
             from hummingbot.connector.exchange.trading212.trading212_exchange import AuthenticationError
             raise AuthenticationError(ERROR_MESSAGES["INVALID_API_KEY"])
-            
+
         elif status == 403:
-            if isinstance(response.data, str) and "Scope" in response.data:
+            if "Scope" in body_text:
                 from hummingbot.connector.exchange.trading212.trading212_exchange import AuthenticationError
                 raise AuthenticationError(ERROR_MESSAGES["INSUFFICIENT_SCOPE"])
             else:
                 from hummingbot.connector.exchange.trading212.trading212_exchange import Trading212APIException
-                raise Trading212APIException(f"Forbidden: {response.data}")
-                
+                raise Trading212APIException("Forbidden")
+
         elif status == 404:
-            if isinstance(response.data, str) and ERROR_MESSAGES["ORDER_NOT_FOUND"] in response.data:
+            if ERROR_MESSAGES["ORDER_NOT_FOUND"] in body_text:
                 from hummingbot.connector.exchange.trading212.trading212_exchange import OrderNotFound
                 raise OrderNotFound("Order not found")
             else:
                 from hummingbot.connector.exchange.trading212.trading212_exchange import Trading212APIException
-                raise Trading212APIException(f"Not found: {response.data}")
-                
+                raise Trading212APIException("Not found")
+
         elif status == 408:
             from hummingbot.connector.exchange.trading212.trading212_exchange import Trading212APIException
             raise Trading212APIException(ERROR_MESSAGES["TIMEOUT"])
-            
+
         elif status == 429:
             from hummingbot.connector.exchange.trading212.trading212_exchange import RateLimitExceeded
             raise RateLimitExceeded(ERROR_MESSAGES["RATE_LIMIT_EXCEEDED"])
-            
+
         elif status >= 500:
             from hummingbot.connector.exchange.trading212.trading212_exchange import Trading212APIException
-            raise Trading212APIException(f"Server error: {response.data}")
+            raise Trading212APIException("Server error")
             
     async def get(
         self,
