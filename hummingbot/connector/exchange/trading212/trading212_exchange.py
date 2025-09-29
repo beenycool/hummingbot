@@ -604,7 +604,15 @@ class Trading212Exchange(ExchangeBase):
                 status = order_data.get("status", "")
                 
                 # Convert Trading212 status to Hummingbot order state
-                order_state = OrderState(ORDER_STATUS_MAP.get(status, "UNKNOWN"))
+                mapped = ORDER_STATUS_MAP.get(status)
+                if isinstance(mapped, OrderState):
+                    order_state = mapped
+                elif isinstance(mapped, str) and mapped in OrderState.__members__:
+                    order_state = OrderState[mapped]
+                elif isinstance(mapped, int):
+                    order_state = OrderState(mapped)
+                else:
+                    order_state = OrderState.FAILED
                 
                 # Update local order if exists
                 if order_id in self._orders:
