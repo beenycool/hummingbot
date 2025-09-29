@@ -301,8 +301,12 @@ class Trading212Exchange(ExchangeBase):
         
     def supported_order_types(self) -> List[OrderType]:
         """Supported order types."""
-        return [OrderType.MARKET, OrderType.LIMIT, OrderType.STOP, OrderType.STOP_LIMIT]
-        
+        types = [OrderType.MARKET, OrderType.LIMIT]
+        if hasattr(OrderType, "STOP"):
+            types.append(OrderType.STOP)
+        if hasattr(OrderType, "STOP_LIMIT"):
+            types.append(OrderType.STOP_LIMIT)
+        return types
     def get_order_book(self, trading_pair: str) -> Optional[OrderBook]:
         """Get order book for trading pair."""
         # Trading212 doesn't provide order book data
