@@ -20,7 +20,12 @@ class Trading212APIOrderBookDataSource(OrderBookTrackerDataSource):
         self._connector = connector
         self._api_factory = api_factory
 
-    async def get_last_traded_prices(self, trading_pairs: List[str], domain: Optional[str] = None) -> Dict[str, float]:
+    async def get_last_traded_prices(
+        self,
+        trading_pairs: List[str],
+        domain: Optional[str] = None
+    ) -> Dict[str, float]:
+        _ = domain
         return await self._connector.get_last_traded_prices(trading_pairs=trading_pairs)
 
     async def _connected_websocket_assistant(self):
