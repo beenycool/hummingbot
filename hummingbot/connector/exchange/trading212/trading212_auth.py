@@ -61,7 +61,11 @@ class Trading212Auth(AuthBase):
         Returns:
             Required API scope or None if not applicable
         """
-        url = request.url.lower()
+        # Safely coerce the request URL to a lowercase string
+        raw_url = request.url or request.endpoint_url or ""
+        url = raw_url.lower()
+        # Ensure we have an uppercase string method, whether it was an Enum or str
+        method = getattr(request.method, "name", str(request.method)).upper()
         
         # Order execution endpoints
         if any(endpoint in url for endpoint in [
@@ -74,6 +78,13 @@ class Trading212Auth(AuthBase):
             "/orders", "/orders/"
         ]):
             return API_SCOPES["orders:read"]
+
+        # Pie endpoints: write scope on state-changing methods, else read
+        if "/pies" in url:
+            if method in {"POST", "PUT", "DELETE"}:
+                return API_SCOPES["pies:write"]
+            else:
+                return API_SCOPES["pies:read"]
             
         # Portfolio endpoints
         if "/portfolio" in url:
