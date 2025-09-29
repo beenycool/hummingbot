@@ -237,7 +237,7 @@ class TestTrading212Utils(unittest.TestCase):
         self.assertEqual(request["timeValidity"], "DAY")
 
 
-class TestTrading212WebUtils(unittest.TestCase):
+class TestTrading212WebUtils(unittest.IsolatedAsyncioTestCase):
     """Test cases for Trading212WebUtils class."""
     
     def setUp(self):
@@ -254,6 +254,7 @@ class TestTrading212WebUtils(unittest.TestCase):
         mock_response.json = AsyncMock(return_value={"data": "test"})
         mock_response.headers = {"Content-Type": "application/json"}
         mock_response.url = "https://test.com/api"
+        mock_response.content_type = "application/json"
         
         mock_request.return_value.__aenter__.return_value = mock_response
         
@@ -272,6 +273,7 @@ class TestTrading212WebUtils(unittest.TestCase):
         mock_response.json = AsyncMock(return_value={"id": 12345})
         mock_response.headers = {"Content-Type": "application/json"}
         mock_response.url = "https://test.com/api"
+        mock_response.content_type = "application/json"
         
         mock_request.return_value.__aenter__.return_value = mock_response
         
@@ -290,6 +292,7 @@ class TestTrading212WebUtils(unittest.TestCase):
         mock_response.json = AsyncMock(return_value={})
         mock_response.headers = {"Content-Type": "application/json"}
         mock_response.url = "https://test.com/api"
+        mock_response.content_type = "application/json"
         
         mock_request.return_value.__aenter__.return_value = mock_response
         
@@ -348,7 +351,7 @@ class TestTrading212WebUtils(unittest.TestCase):
             await self.web_utils.get("https://test.com/api")
 
 
-class TestTrading212Exchange(unittest.TestCase):
+class TestTrading212Exchange(unittest.IsolatedAsyncioTestCase):
     """Test cases for Trading212Exchange class."""
     
     def setUp(self):
@@ -415,7 +418,8 @@ class TestTrading212Exchange(unittest.TestCase):
         self.exchange.set_api_key("test_api_key")
         
         # Mock trading rules response
-        mock_web_utils.get.return_value = RESTResponse(
+        from types import SimpleNamespace
+        mock_web_utils.get.return_value = SimpleNamespace(
             status=200,
             headers={},
             data=[
@@ -457,12 +461,8 @@ class TestTrading212Exchange(unittest.TestCase):
         """Test successful order placement."""
         # Mock web utils
         mock_web_utils = AsyncMock()
-        mock_web_utils.post.return_value = RESTResponse(
-            status=200,
-            headers={},
-            data={"id": 12345, "status": "LOCAL"},
-            url="https://test.com/api"
-        )
+        from types import SimpleNamespace
+        mock_web_utils.post.return_value = SimpleNamespace(status=200, headers={}, data={"id": 12345, "status": "LOCAL"}, url="https://test.com/api")
         mock_web_utils_class.return_value = mock_web_utils
         
         # Set up exchange
@@ -492,12 +492,8 @@ class TestTrading212Exchange(unittest.TestCase):
         """Test successful order cancellation."""
         # Mock web utils
         mock_web_utils = AsyncMock()
-        mock_web_utils.delete.return_value = RESTResponse(
-            status=200,
-            headers={},
-            data={},
-            url="https://test.com/api"
-        )
+        from types import SimpleNamespace
+        mock_web_utils.delete.return_value = SimpleNamespace(status=200, headers={}, data={}, url="https://test.com/api")
         mock_web_utils_class.return_value = mock_web_utils
         
         # Set up exchange
@@ -541,12 +537,8 @@ class TestTrading212Exchange(unittest.TestCase):
         """Test successful order status request."""
         # Mock web utils
         mock_web_utils = AsyncMock()
-        mock_web_utils.get.return_value = RESTResponse(
-            status=200,
-            headers={},
-            data={"id": 12345, "status": "WORKING"},
-            url="https://test.com/api"
-        )
+        from types import SimpleNamespace
+        mock_web_utils.get.return_value = SimpleNamespace(status=200, headers={}, data={"id": 12345, "status": "WORKING"}, url="https://test.com/api")
         mock_web_utils_class.return_value = mock_web_utils
         
         # Set up exchange

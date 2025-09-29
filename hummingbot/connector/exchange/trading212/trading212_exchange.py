@@ -158,8 +158,10 @@ class Trading212Exchange(ExchangeBase):
         try:
             response = await self._web_utils.get(f"{REST_URL}{ENDPOINTS['instruments']}")
             
-            if response.status == 200 and isinstance(response.data, list):
-                for instrument in response.data:
+            if response.status == 200:
+                data = await response.json()
+                if isinstance(data, list):
+                    for instrument in data:
                     ticker = instrument.get("ticker", "")
                     trading_pair = self._utils.convert_trading212_ticker_to_hummingbot(ticker)
                     
@@ -197,8 +199,10 @@ class Trading212Exchange(ExchangeBase):
         try:
             response = await self._web_utils.get(f"{REST_URL}{ENDPOINTS['orders']}")
             
-        if response.status == 200 and isinstance(response.data, list):
-            for order_data in response.data:
+            if response.status == 200:
+                data = await response.json()
+                if isinstance(data, list):
+                    for order_data in data:
                 order_id = str(order_data.get("id", ""))
                 parsed_order = self._utils.parse_order_data(order_data)
                 
@@ -242,8 +246,10 @@ class Trading212Exchange(ExchangeBase):
         try:
             response = await self._web_utils.get(f"{REST_URL}{ENDPOINTS['account_cash']}")
             
-            if response.status == 200 and isinstance(response.data, dict):
-                parsed_balance = self._utils.parse_balance_data(response.data)
+            if response.status == 200:
+                data = await response.json()
+                if isinstance(data, dict):
+                    parsed_balance = self._utils.parse_balance_data(data)
                 
                 if parsed_balance:
                     balance = Balance(
@@ -263,8 +269,10 @@ class Trading212Exchange(ExchangeBase):
         try:
             response = await self._web_utils.get(f"{REST_URL}{ENDPOINTS['portfolio']}")
             
-            if response.status == 200 and isinstance(response.data, list):
-                for position_data in response.data:
+            if response.status == 200:
+                data = await response.json()
+                if isinstance(data, list):
+                    for position_data in data:
                     parsed_position = self._utils.parse_position_data(position_data)
                     
                     if parsed_position:
@@ -504,8 +512,10 @@ class Trading212Exchange(ExchangeBase):
             # Place order
             response = await self._web_utils.post(endpoint, json_data=order_request)
             
-            if response.status == 200 and isinstance(response.data, dict):
-                order_id = str(response.data.get("id", ""))
+            if response.status == 200:
+                data = await response.json()
+                if isinstance(data, dict):
+                    order_id = str(data.get("id", ""))
                 
                 # Create order object
                 order = Order(
@@ -541,9 +551,8 @@ class Trading212Exchange(ExchangeBase):
                         timestamp=order.timestamp
                     ))
                 
-                return order_id
-            else:
-                raise Trading212APIException(f"Failed to place order: {response.data}")
+                    return order_id
+            raise Trading212APIException("Failed to place order")
                 
         except Exception as e:
             self._logger.error(f"Error placing order: {e}")
@@ -579,7 +588,7 @@ class Trading212Exchange(ExchangeBase):
                 
                 return True
             else:
-                raise Trading212APIException(f"Failed to cancel order: {response.data}")
+                raise Trading212APIException("Failed to cancel order")
                 
         except Exception as e:
             self._logger.error(f"Error cancelling order: {e}")
@@ -639,8 +648,10 @@ class Trading212Exchange(ExchangeBase):
             # Get all orders
             response = await self._web_utils.get(f"{REST_URL}{ENDPOINTS['orders']}")
             
-            if response.status == 200 and isinstance(response.data, list):
-                for order_data in response.data:
+            if response.status == 200:
+                data = await response.json()
+                if isinstance(data, list):
+                    for order_data in data:
                     order_id = str(order_data.get("id", ""))
                     status = order_data.get("status", "")
                     filled_quantity = float(order_data.get("filledQuantity", 0))

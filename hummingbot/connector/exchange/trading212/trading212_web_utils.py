@@ -59,6 +59,8 @@ class Trading212WebUtils:
     async def _make_request(
         self,
         request: RESTRequest,
+        *,
+        json_body: Optional[Dict[str, Any]] = None,
         max_retries: int = RETRY_SETTINGS["MAX_RETRIES"]
     ) -> RESTResponse:
         """
@@ -77,9 +79,9 @@ class Trading212WebUtils:
         if not self._session:
             await self.initialize()
             
-        # Add authentication headers
+        # Add authentication headers (merge immutably)
         auth_headers = self._auth.add_auth_to_headers(request)
-        request.headers.update(auth_headers)
+        merged_headers: Dict[str, str] = {**(request.headers or {}), **auth_headers}
         
         # Apply rate limiting
         await self._rate_limiter.acquire_token(request.url)
@@ -90,23 +92,14 @@ class Trading212WebUtils:
                 async with self._session.request(
                     method=request.method,
                     url=request.url,
-                    headers=request.headers,
+                    headers=merged_headers,
                     params=request.params,
                     data=request.data,
-                    json=request.json_data
-                ) as response:
-                    response_data = await response.json() if response.content_type == "application/json" else await response.text()
-                    
-                    rest_response = RESTResponse(
-                        status=response.status,
-                        headers=dict(response.headers),
-                        data=response_data,
-                        url=str(response.url)
-                    )
-                    
+                    json=json_body
+                ) as aiohttp_response:
+                    rest_response = RESTResponse(aiohttp_response)
                     # Check for errors
                     await self._check_response_errors(rest_response)
-                    
                     return rest_response
                     
             except ClientError as e:
@@ -227,10 +220,9 @@ class Trading212WebUtils:
             method="POST",
             url=url,
             data=data,
-            json_data=json_data,
             headers=headers or {}
         )
-        return await self._make_request(request)
+        return await self._make_request(request, json_body=json_data)
         
     async def delete(
         self,

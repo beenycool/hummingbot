@@ -76,15 +76,17 @@ class Trading212APIOrderBookDataSource(OrderBookTrackerDataSource):
             # use the absolute URL constant instead of hard-coded path
             response = await self._web_utils.get(f"{REST_URL}{ENDPOINTS['portfolio']}")
 
-            if response.status == 200 and isinstance(response.data, list):
-                for position in response.data:
+            if response.status == 200:
+                data = await response.json()
+                if isinstance(data, list):
+                    for position in data:
                     ticker = position.get("ticker", "")
                     trading_pair = self._convert_ticker_to_trading_pair(ticker)
 
-                    if trading_pair in self._trading_pairs:
-                        current_price = Decimal(str(position.get("currentPrice", 0)))
-                        if current_price > 0:
-                            await self._update_order_book(trading_pair, current_price)
+                        if trading_pair in self._trading_pairs:
+                            current_price = Decimal(str(position.get("currentPrice", 0)))
+                            if current_price > 0:
+                                await self._update_order_book(trading_pair, current_price)
                             
         except Exception as e:
             self._logger.error(f"Error updating order books: {e}")

@@ -87,10 +87,9 @@ class Trading212Utils:
         mapping = {
             OrderType.MARKET: ORDER_TYPES["MARKET"],
             OrderType.LIMIT: ORDER_TYPES["LIMIT"],
-            OrderType.STOP: ORDER_TYPES["STOP"],
-            OrderType.STOP_LIMIT: ORDER_TYPES["STOP_LIMIT"],
+            getattr(OrderType, "LIMIT_MAKER", OrderType.LIMIT): ORDER_TYPES["LIMIT"],
         }
-        return mapping.get(order_type, ORDER_TYPES["LIMIT"])
+        return mapping.get(order_type, ORDER_TYPES.get("LIMIT_MAKER", ORDER_TYPES["LIMIT"]))
         
     @staticmethod
     def convert_trade_type_to_trading212(trade_type: TradeType) -> str:
@@ -440,9 +439,9 @@ class Trading212Utils:
         
         if order_type == OrderType.LIMIT and price:
             request_data["limitPrice"] = float(price)
-        elif order_type == OrderType.STOP and stop_price:
+        elif hasattr(OrderType, "STOP") and order_type == getattr(OrderType, "STOP") and stop_price:
             request_data["stopPrice"] = float(stop_price)
-        elif order_type == OrderType.STOP_LIMIT and price and stop_price:
+        elif hasattr(OrderType, "STOP_LIMIT") and order_type == getattr(OrderType, "STOP_LIMIT") and price and stop_price:
             request_data["limitPrice"] = float(price)
             request_data["stopPrice"] = float(stop_price)
             

@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../.."))
 
 # Test configuration
 TEST_CONFIG = {
-    "api_key": "test_api_key_12345",
+    "api_key": os.environ.get("TRADING212_TEST_API_KEY", "REPLACE_WITH_DUMMY_KEY"),
     "trading_pairs": ["AAPL-USD", "MSFT-USD", "GOOGL-USD"],
     "test_data": {
         "order_data": {

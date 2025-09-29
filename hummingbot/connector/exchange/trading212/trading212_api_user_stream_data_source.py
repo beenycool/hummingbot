@@ -14,7 +14,7 @@ from hummingbot.core.data_type.user_stream_tracker import UserStreamTracker
 from hummingbot.core.data_type.order_book_message import OrderBookMessage, OrderBookMessageType
 from hummingbot.core.data_type.trade import Trade
 from hummingbot.core.data_type.balance import Balance
-from hummingbot.core.data_type.position import Position
+from hummingbot.core.data_type.position import Position, PositionSide
 from hummingbot.core.web_assistant.connections.data_types import RESTResponse
 from hummingbot.connector.exchange.trading212.trading212_web_utils import Trading212WebUtils
 from hummingbot.connector.exchange.trading212.trading212_utils import Trading212Utils
@@ -78,8 +78,10 @@ class Trading212APIUserStreamDataSource(UserStreamTrackerDataSource):
         try:
             response = await self._web_utils.get("/api/v0/equity/orders")
             
-            if response.status == 200 and isinstance(response.data, list):
-                current_orders = {str(order.get("id", "")): order for order in response.data}
+            if response.status == 200:
+                data = await response.json()
+                if isinstance(data, list):
+                    current_orders = {str(order.get("id", "")): order for order in data}
                 
                 # Check for new or updated orders
                 for order_id, order_data in current_orders.items():
@@ -101,8 +103,10 @@ class Trading212APIUserStreamDataSource(UserStreamTrackerDataSource):
         try:
             response = await self._web_utils.get("/api/v0/equity/account/cash")
             
-            if response.status == 200 and isinstance(response.data, dict):
-                current_balances = response.data
+            if response.status == 200:
+                data = await response.json()
+                if isinstance(data, dict):
+                    current_balances = data
                 
                 # Check for balance changes
                 if self._last_balances != current_balances:
@@ -117,8 +121,10 @@ class Trading212APIUserStreamDataSource(UserStreamTrackerDataSource):
         try:
             response = await self._web_utils.get("/api/v0/equity/portfolio")
             
-            if response.status == 200 and isinstance(response.data, list):
-                current_positions = {pos.get("ticker", ""): pos for pos in response.data}
+            if response.status == 200:
+                data = await response.json()
+                if isinstance(data, list):
+                    current_positions = {pos.get("ticker", ""): pos for pos in data}
                 
                 # Check for position changes
                 for ticker, position_data in current_positions.items():
@@ -232,7 +238,7 @@ class Trading212APIUserStreamDataSource(UserStreamTrackerDataSource):
                 # Create position object
                 position = Position(
                     trading_pair=parsed_position["trading_pair"],
-                    position_side="LONG" if parsed_position["amount"] > 0 else "SHORT",
+                    position_side=PositionSide.LONG if parsed_position["amount"] > 0 else PositionSide.SHORT,
                     amount=Decimal(str(abs(parsed_position["amount"]))),
                     entry_price=Decimal(str(parsed_position["average_price"])),
                     unrealized_pnl=Decimal(str(parsed_position["unrealized_pnl"])),
