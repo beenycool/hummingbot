@@ -273,7 +273,7 @@ class Trading212APIUserStreamDataSource(UserStreamTrackerDataSource):
         except Exception as e:
             self._logger.error(f"Error emitting position close: {e}")
             
-    async def listen_for_user_stream(self, ev_loop: asyncio.AbstractEventLoop, output: asyncio.Queue):
+    async def listen_for_user_stream(self, output: asyncio.Queue):
         """
         Listen for user stream updates.
         
@@ -281,11 +281,28 @@ class Trading212APIUserStreamDataSource(UserStreamTrackerDataSource):
             ev_loop: Event loop
             output: Output queue for user stream messages
         """
-        # This method is required by the base class but not used in our polling implementation
-        # The actual listening is handled by the polling loop
-        while True:
-            await asyncio.sleep(POLLING_INTERVALS["ORDER_STATUS"])
-            
+        self._output_queue = output
+        self._stop_polling = False
+        # Per-endpoint scheduling to respect POLLING_INTERVALS
+        import time
+        last_orders = last_bal = last_pos = 0.0
+        while not self._stop_polling:
+            now = time.monotonic()
+            try:
+                if now - last_orders >= POLLING_INTERVALS["ORDER_STATUS"]:
+                    await self._update_orders()
+                    last_orders = now
+                if now - last_bal >= POLLING_INTERVALS["BALANCE_UPDATE"]:
+                    await self._update_balances()
+                    last_bal = now
+                if now - last_pos >= POLLING_INTERVALS["PORTFOLIO_UPDATE"]:
+                    await self._update_positions()
+                    last_pos = now
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                self._logger.exception("Error in user stream polling loop")
+            await asyncio.sleep(0.2)
     def get_last_orders(self) -> Dict[str, Any]:
         """
         Get last known orders.
