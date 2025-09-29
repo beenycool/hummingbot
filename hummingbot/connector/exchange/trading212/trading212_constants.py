@@ -99,12 +99,15 @@ TIME_VALIDITY_OPTIONS = {
     "GOOD_TILL_CANCEL": "GOOD_TILL_CANCEL",
 }
 
+# from hummingbot.core.data_type.trade_fee import TradeFeeBase
+from hummingbot.core.data_type.trade_fee import TradeFeeSchema
+from decimal import Decimal
+
 # Default Fees (Trading212 is zero commission)
-DEFAULT_FEES = TradeFeeBase.new_spot_fee(
+DEFAULT_FEES = TradeFeeSchema(
     maker_percent_fee_decimal=Decimal("0"),
     taker_percent_fee_decimal=Decimal("0"),
 )
-
 # Trading212 Configuration Variables
 REQUIRED_CONNECTORS_SETTINGS = {
     "trading212_api_key": ConfigVar(
