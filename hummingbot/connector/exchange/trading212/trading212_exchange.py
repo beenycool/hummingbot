@@ -197,24 +197,42 @@ class Trading212Exchange(ExchangeBase):
         try:
             response = await self._web_utils.get(f"{REST_URL}{ENDPOINTS['orders']}")
             
-            if response.status == 200 and isinstance(response.data, list):
-                for order_data in response.data:
-                    order_id = str(order_data.get("id", ""))
-                    parsed_order = self._utils.parse_order_data(order_data)
+        if response.status == 200 and isinstance(response.data, list):
+            for order_data in response.data:
+                order_id = str(order_data.get("id", ""))
+                parsed_order = self._utils.parse_order_data(order_data)
+                
+                if parsed_order:
+                    # Coerce enums safely
+                    ot = parsed_order["order_type"]
+                    if not isinstance(ot, OrderType):
+                        ot = OrderType[ot] if isinstance(ot, str) and ot in OrderType.__members__ else OrderType.LIMIT
+                    tt = parsed_order["trade_type"]
+                    if not isinstance(tt, TradeType):
+                        tt = TradeType[tt] if isinstance(tt, str) and tt in TradeType.__members__ else TradeType.BUY
+                    st = parsed_order["status"]
+                    state_map = ORDER_STATUS_MAP.get(st, None)
+                    if isinstance(state_map, OrderState):
+                        os_ = state_map
+                    elif isinstance(state_map, str) and state_map in OrderState.__members__:
+                        os_ = OrderState[state_map]
+                    elif isinstance(state_map, int):
+                        os_ = OrderState(state_map)
+                    else:
+                        os_ = OrderState.FAILED
+
+                    order = Order(
+                        client_order_id=order_id,
+                        trading_pair=parsed_order["trading_pair"],
+                        order_type=ot,
+                        trade_type=tt,
+                        amount=Decimal(str(parsed_order["amount"])),
+                        price=Decimal(str(parsed_order["price"])),
+                        status=os_,
+                        timestamp=parsed_order["timestamp"],
+                    )
                     
-                    if parsed_order:
-                        order = Order(
-                            client_order_id=order_id,
-                            trading_pair=parsed_order["trading_pair"],
-                            order_type=OrderType(parsed_order["order_type"]),
-                            trade_type=TradeType(parsed_order["trade_type"]),
-                            amount=Decimal(str(parsed_order["amount"])),
-                            price=Decimal(str(parsed_order["price"])),
-                            status=OrderState(parsed_order["status"]),
-                            timestamp=parsed_order["timestamp"],
-                        )
-                        
-                        self._orders[order_id] = order
+                    self._orders[order_id] = order
                         
         except Exception as e:
             self._logger.error(f"Error updating orders: {e}")
