@@ -493,11 +493,12 @@ class Trading212Exchange(ExchangeBase):
                 endpoint = f"{REST_URL}{ENDPOINTS['order_market']}"
             elif order_type == OrderType.LIMIT:
                 endpoint = f"{REST_URL}{ENDPOINTS['order_limit']}"
-            elif order_type == OrderType.STOP:
+            elif hasattr(OrderType, "STOP") and order_type == OrderType.STOP:
                 endpoint = f"{REST_URL}{ENDPOINTS['order_stop']}"
-            elif order_type == OrderType.STOP_LIMIT:
+            elif hasattr(OrderType, "STOP_LIMIT") and order_type == OrderType.STOP_LIMIT:
                 endpoint = f"{REST_URL}{ENDPOINTS['order_stop_limit']}"
             else:
+                raise ValueError(f"Unsupported order type: {order_type}")
                 raise ValueError(f"Unsupported order type: {order_type}")
                 
             # Place order
