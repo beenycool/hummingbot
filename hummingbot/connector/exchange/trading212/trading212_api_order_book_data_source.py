@@ -32,26 +32,26 @@ class Trading212APIOrderBookDataSource(OrderBookTrackerDataSource):
         # No websocket; return a dummy assistant via factory if needed but we will not subscribe
         return await self._api_factory.get_ws_assistant()
 
-    async def _subscribe_channels(self, websocket_assistant):
+    async def _subscribe_channels(self, _websocket_assistant):
         # No public streams. Do nothing.
         self.logger().info("Trading212 has no public order book streams; using polling only.")
 
-    def _channel_originating_message(self, event_message: Dict[str, Any]) -> str:
+    def _channel_originating_message(self, _event_message: Dict[str, Any]) -> str:
         return self._snapshot_messages_queue_key
 
-    async def _process_websocket_messages(self, websocket_assistant):
+    async def _process_websocket_messages(self, _websocket_assistant):
         # Not used
         await asyncio.sleep(60)
 
-    async def _parse_trade_message(self, raw_message: Dict[str, Any], message_queue: asyncio.Queue):
+    async def _parse_trade_message(self, _raw_message: Dict[str, Any], _message_queue: asyncio.Queue):
         # Not supported
         return
 
-    async def _parse_order_book_diff_message(self, raw_message: Dict[str, Any], message_queue: asyncio.Queue):
+    async def _parse_order_book_diff_message(self, _raw_message: Dict[str, Any], _message_queue: asyncio.Queue):
         # Not supported
         return
 
-    async def _parse_order_book_snapshot_message(self, raw_message: Dict[str, Any], message_queue: asyncio.Queue):
+    async def _parse_order_book_snapshot_message(self, _raw_message: Dict[str, Any], _message_queue: asyncio.Queue):
         # Not supported
         return
 
